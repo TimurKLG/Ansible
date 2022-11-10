@@ -1,0 +1,20 @@
+---
+ - hosts: test
+   tasks:
+ - name: install postfix
+   apt:
+      name: postfix
+      state: latest
+   tags:
+     - init postfix 
+
+ - name: unistall postfix
+   apt:
+      name: postfix
+      state: absent
+   tags:
+      - drop postfix
+#при запуске добавить --tags
+...
+
+ 
