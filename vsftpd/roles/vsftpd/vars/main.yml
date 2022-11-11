@@ -1,0 +1,9 @@
+---
+# vars file for vsftpd
+
+vsftpd_apt:
+  - vsftpd
+
+vsftpd_service: vsftpd
+
+vsftpd_config_file: /etc/vsftpd.conf
