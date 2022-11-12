@@ -1,0 +1,35 @@
+---
+- hosts: server
+  vars:
+    sudoers:
+      - user1
+      - user2
+
+  tasks:
+    - name: Make sure we have a 'superusers' group
+      group:
+        name: superusers
+        state: present
+
+    - name: Allow 'superusers' group to have passwordless sudo
+      lineinfile:
+        dest: /etc/sudoers
+        state: present
+        regexp: '^%superusers'
+        line: '%superusers ALL=(ALL) NOPASSWD: ALL'
+        validate: visudo -cf %s
+
+    - name: add user server
+      user:
+        name: "{{ item }}"
+        groups: superusers
+        shell: /bin/bash
+        password: #зашифрованный пароль пользователя --ask-pass-vault
+      loop: "{{ sudoers }}"
+
+    - name: Add sudoers users to wheel group
+      user:
+        name: "{{ item }}"
+        groups: superusers
+        append: yes
+      with_items: "{{ sudoers }}"
