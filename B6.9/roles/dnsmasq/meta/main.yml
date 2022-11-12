@@ -1,0 +1,29 @@
+galaxy_info:
+  author: timur
+  description: DevOps
+
+
+  license: license (GPL-2.0-or-later, MIT, etc)
+
+  min_ansible_version: 2.1
+
+  platforms:
+  - name: EL
+    versions:
+      - 6
+      - 7
+  - name: Fedora
+    versions:
+      - 26
+  - name: Ubuntu
+    versions:
+      - precise
+      - trusty
+  - name: Debian
+    versions:
+      - jessie
+      - stretch
+  categories:
+      - system
+#  galaxy_tags: []
+#dependencies: []
