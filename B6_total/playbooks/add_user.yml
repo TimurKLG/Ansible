@@ -1,0 +1,22 @@
+---
+  - hosts: server
+    become: yes
+
+    vars:
+     source_folder: /etc/ansible/playbooks/file/id_rsa.pub #зашифрованный файл с ключем, в запрос добавить --ask-pass-vault
+     destin_folder: /home/user1/.ssh
+
+    tasks:
+
+    - name: add user server
+      user:
+        name: user1
+        groups: sudo
+        shell: /bin/bash
+        password: #зашифрованный пароль пользователя --ask-pass-vault
+
+    - name: Add SSH keys to remote hosts
+      copy:
+        src: "{{ source_folder }}"
+        dest: "{{ destin_folder }}"
+

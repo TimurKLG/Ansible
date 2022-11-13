@@ -1,0 +1,36 @@
+---
+# tasks file for run_nginx_role
+- name: install nginx
+  apt:
+    name: nginx
+    state: latest
+
+- name: start nginx
+  service:
+    name: nginx
+    state: started
+    enabled: yes
+
+- name: creating the directory
+  file:
+    path: /usr/share/nginx/html
+    state: directory
+
+- name: create a file index_php
+  copy:
+    content: "<?php phpinfo();?>"
+    dest: /usr/share/nginx/html/index.php
+
+- name: copying nginx_conf to remote_host
+  copy:
+    src: /etc/ansible/playbooks/file/nginx.conf
+    dest: /etc/nginx/nginx.conf
+    remote_src: yes
+
+- name: Set configuration file
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+  notify: restart nginx
+  tags: nginx
+...
