@@ -1,0 +1,17 @@
+[server]
+51.250.12.148
+
+[app]
+158.160.35.229
+84.252.131.250
+
+[database]
+51.250.90.233
+
+[vars.database]
+postgresql_version=11
+data_repository=/var/lib/postgresql/11/main
+
+[web]
+51.250.90.233
+

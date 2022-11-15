@@ -1,0 +1,139 @@
+---
+- name: install docker
+  hosts: app
+  become: yes
+
+  tasks:
+  - name: install docker
+    debag: var=ansible_os_family
+  - block: ======Block for Ubuntu======
+      - name: Update the apt package index
+        apt:
+          name: "*"
+          state: latest
+          update_cache: yes
+          force_apt_get: yes
+      - name: Install packages for apt add repository over HTTPS
+        apt:
+          name: "{{ packagesdep }}"
+          force_apt_get: yes
+          state: latest
+          update_cache: yes
+        vars:
+          packagesdep:
+                - git
+                - apt-transport-https
+                - ca-certificates
+                - software-properties-common
+                - curl
+      - name: Add Apt signing key from official docker repo
+        apt_key:
+          url: https://download.docker.com/linux/ubuntu/gpg
+          state: present
+      - name: add docker official repository for Ubuntu Stretch
+        apt_repository:
+          repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu focal stable
+          state: present
+      - name: Index new repo into the cache
+        apt:
+          name: "*"
+          state: latest
+          update_cache: yes
+          force_apt_get: yes
+      - name: actually install docker
+        apt:
+          name: "docker-ce"
+          state: latest
+
+    when: ansible_os_family == "RedHat"
+
+  - block: ======Block for Centos7======
+      - name: Install yum-utils
+        yum:
+          name: yum-utils
+          state: latest
+      - name: Add repository
+        yum_repository:
+          name: docker
+          description: Docker YUM repo
+          baseurl: https://download.docker.com/linux/centos/docker-ce.repo
+      - name: actually install docker
+        yum:
+          name: "{{ docker_install }}"
+          state: latest
+        vars:
+          docker_install:
+              - docker-ce
+              - docker-ce-cli
+              - containerd.io
+    when: ansible_os_family == "Debian"
+
+- name: install postgresql
+  hosts: database
+  become: yes
+
+  vars:
+    db_user: pg_user
+    db_name: pg_vm1
+    db_password: Dell1245 #зашифровать пароль ansible-vault, добавить при запуске --ask-pass-vault
+
+  tasks:
+  - name: Install dependencies for PostgreSQL
+    apt:
+      name: {{ item }}
+      update_cache: true
+      state: latest
+    loop:
+     - bash
+     - openssl
+     - libssl-dev
+     - libssl-doc
+
+  - name: Install PostgreSQL
+    apt:
+      name: {{ item }}
+      update_cache: true
+      state: present
+    loop:
+     - postgresql
+     - postgresql-contrib
+     - libpq-dev
+     - python3-psycopg2
+
+  - name: Ensure the PostgreSQL service is running
+    service:
+      name: postgresql
+      state: started
+      enabled: yes
+
+  - name: Create the database specified in vars
+    become: true
+    become_user: postgres
+    postgresql_db:
+       name: {{ db_name }}
+       template: 'template0'
+       state: present
+
+  - name: Ensure user has access to the new database
+    become: true
+    become_user: postgres
+    postgresql_user:
+          db: {{ db_name }}
+          name: {{ db_user }}
+          password: {{ db_password }}
+          priv: ALL
+          state: present
+
+  - name: Ensure user does not have unnecessary permissions
+    become: true
+    become_user: postgres
+    postgresql_user:
+         name: {{ db_user }}
+         role_attr_flags: NOSUPERUSER,NOCREATEDB
+         state: present
+
+  - name: Add some dummy data to our database
+    become: true
+    become_user: postgres
+    shell: psql {{ db_name }} < /tmp/dump.sql
+...
